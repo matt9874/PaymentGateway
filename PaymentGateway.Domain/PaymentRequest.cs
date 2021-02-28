@@ -21,8 +21,9 @@ namespace PaymentGateway.Domain
             MerchantId = merchantId;
         }
         public CreditCard Card { get; }
-        public Currency Currency { get; set; }
-        public decimal Amount { get; set; }
-        public int MerchantId { get; set; }
+        public Currency Currency { get; }
+        public decimal Amount { get; }
+        public int MerchantId { get; }
+        public bool? Successful { get; set; }
     }
 }
