@@ -14,19 +14,30 @@ namespace PaymentGateway.API.Controllers
         private readonly IMapper<(int, ProcessPaymentDto), PaymentRequest> _processPaymentMapper;
         private readonly IMerchantsRepository _merchantRepository;
         private readonly IProcessPaymentService _processPaymentService;
+        private readonly IPaymentsRepository _paymentsRepository;
+        private readonly IMapper<PaymentRequest, PaymentDetailsDto> _paymentDetailsMapper;
 
         public PaymentsController(IMapper<(int, ProcessPaymentDto), PaymentRequest> processPaymentMapper,
-            IMerchantsRepository merchantRepository, IProcessPaymentService processPaymentService)
+            IMerchantsRepository merchantRepository, IProcessPaymentService processPaymentService,
+            IPaymentsRepository paymentsRepository, IMapper<PaymentRequest, PaymentDetailsDto> paymentDetailsMapper)
         {
             _processPaymentMapper = processPaymentMapper;
             _merchantRepository = merchantRepository;
             _processPaymentService = processPaymentService;
+            _paymentsRepository = paymentsRepository;
+            _paymentDetailsMapper = paymentDetailsMapper;
         }
 
         [HttpGet("{paymentId}", Name = "GetPaymentDetails")]
         public async Task<IActionResult> GetPaymentDetails([FromRoute] int merchantId, [FromRoute] long paymentId)
         {
-            return NotFound();
+            PaymentRequest paymentRequest = await _paymentsRepository.GetPaymentForMerchant(merchantId, paymentId);
+
+            if (paymentRequest == null)
+                return NotFound();
+
+            PaymentDetailsDto paymentDetailsDto = _paymentDetailsMapper.Map(paymentRequest);
+            return Ok(paymentDetailsDto);
         }
 
         [HttpPost]

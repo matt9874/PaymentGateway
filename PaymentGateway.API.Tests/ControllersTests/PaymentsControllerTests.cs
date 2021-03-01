@@ -6,7 +6,6 @@ using PaymentGateway.API.Models;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.PersistenceInterfaces;
 using PaymentGateway.Domain;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace PaymentGateway.API.Tests.ControllersTests
@@ -17,6 +16,8 @@ namespace PaymentGateway.API.Tests.ControllersTests
         private Mock<IMapper<(int, ProcessPaymentDto), PaymentRequest>> _mockMapper;
         private Mock<IMerchantsRepository> _mockMerchantRepository;
         private Mock<IProcessPaymentService> _mockProcessPaymentService;
+        private Mock<IPaymentsRepository> _mockPaymentsRepository;
+        private Mock<IMapper<PaymentRequest, PaymentDetailsDto>> _mockPaymentDetailsMapper;
         private PaymentsController _paymentsController;
 
         [TestInitialize]
@@ -25,7 +26,10 @@ namespace PaymentGateway.API.Tests.ControllersTests
             _mockMapper = new Mock<IMapper<(int, ProcessPaymentDto), PaymentRequest>>();
             _mockMerchantRepository = new Mock<IMerchantsRepository>();
             _mockProcessPaymentService = new Mock<IProcessPaymentService>();
-            _paymentsController = new PaymentsController(_mockMapper.Object, _mockMerchantRepository.Object, _mockProcessPaymentService.Object);
+            _mockPaymentsRepository = new Mock<IPaymentsRepository>();
+            _mockPaymentDetailsMapper = new Mock<IMapper<PaymentRequest, PaymentDetailsDto>>();
+            _paymentsController = new PaymentsController(_mockMapper.Object, _mockMerchantRepository.Object, 
+                _mockProcessPaymentService.Object, _mockPaymentsRepository.Object, _mockPaymentDetailsMapper.Object);
         }
 
         [TestMethod]
@@ -115,6 +119,48 @@ namespace PaymentGateway.API.Tests.ControllersTests
             var postResult = await _paymentsController.ProcessNewPayment(merchantId, new ProcessPaymentDto());
 
             Assert.IsInstanceOfType(postResult, typeof(ConflictObjectResult));
+        }
+
+        [TestMethod]
+        public async Task GetPaymentDetails_NoPaymentFromRepository_ReturnsNotFound()
+        {
+            _mockPaymentsRepository.Setup(r => r.GetPaymentForMerchant(It.IsAny<int>(), It.IsAny<long>()))
+                .ReturnsAsync((PaymentRequest)null);
+
+            var postResult = await _paymentsController.GetPaymentDetails(1, 2L);
+
+            Assert.IsInstanceOfType(postResult, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public async Task GetPaymentDetails_MapperReturnsPaymentDetailsDto_ReturnsOk()
+        {
+            _mockPaymentsRepository.Setup(r => r.GetPaymentForMerchant(It.IsAny<int>(), It.IsAny<long>()))
+                .ReturnsAsync(new PaymentRequest("1234512345123456", 1, 2222, "111", Currency.Euro, 1M, 1));
+
+            PaymentDetailsDto paymentDetails = new PaymentDetailsDto();
+            _mockPaymentDetailsMapper.Setup(m => m.Map(It.IsAny<PaymentRequest>()))
+                .Returns(paymentDetails);
+
+            var postResult = await _paymentsController.GetPaymentDetails(1, 2L);
+
+            Assert.IsInstanceOfType(postResult, typeof(OkObjectResult));
+        }
+
+        [TestMethod]
+        public async Task GetPaymentDetails_MapperReturnsPaymentDetailsDto_MappedPaymentDetailsInBody()
+        {
+            _mockPaymentsRepository.Setup(r => r.GetPaymentForMerchant(It.IsAny<int>(), It.IsAny<long>()))
+                .ReturnsAsync(new PaymentRequest("1234512345123456", 1, 2222, "111", Currency.Euro, 1M, 1));
+
+            PaymentDetailsDto paymentDetails = new PaymentDetailsDto();
+            _mockPaymentDetailsMapper.Setup(m => m.Map(It.IsAny<PaymentRequest>()))
+                .Returns(paymentDetails);
+
+            var postResult = await _paymentsController.GetPaymentDetails(1, 2L);
+            var okObjectResult = (OkObjectResult)postResult;
+
+            Assert.AreEqual(paymentDetails, okObjectResult.Value);
         }
     }
 }

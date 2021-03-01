@@ -76,6 +76,7 @@ namespace PaymentGateway.API
             services.AddScoped<IMapper<PaymentRequest, BankPaymentRequest>, PaymentRequestMapper>();
             services.AddScoped<IMapper<(int, ProcessPaymentDto), PaymentRequest>, ProcessPaymentMapper>();
             services.AddScoped<IProcessPaymentService, ProcessPaymentService>();
+            services.AddScoped<IMapper<PaymentRequest, PaymentDetailsDto>, PaymentDetailsMapper>();
 
             services.AddScoped<IMerchantsRepository, DummyMerchantsRepository>();
             services.AddScoped<IPaymentsRepository, DummyPaymentsRepository>();

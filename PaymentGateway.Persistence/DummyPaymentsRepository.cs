@@ -10,6 +10,18 @@ namespace PaymentGateway.Persistence
     {
         private static readonly Dictionary<long, PaymentRequest> _paymentRequests = new Dictionary<long, PaymentRequest>();
 
+        public Task<PaymentRequest> GetPaymentForMerchant(int merchantId, long paymentId)
+        {
+            PaymentRequest paymentRequest = null;
+            if (_paymentRequests.ContainsKey(paymentId))
+            {
+                PaymentRequest paymentRequestWithPaymentId = _paymentRequests[paymentId];
+                if (paymentRequestWithPaymentId.MerchantId == merchantId)
+                    paymentRequest = paymentRequestWithPaymentId;
+            }
+            return Task.FromResult(paymentRequest);
+        }
+
         public Task SavePayment(PaymentRequest payment)
         {
             if (payment.Id == null)
