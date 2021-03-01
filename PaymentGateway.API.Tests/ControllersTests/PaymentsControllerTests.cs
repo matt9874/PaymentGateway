@@ -108,7 +108,7 @@ namespace PaymentGateway.API.Tests.ControllersTests
         }
 
         [TestMethod]
-        public async Task ProcessNewPayment_PaymentServiceIsUnsuccessful_ReturnsConflict()
+        public async Task ProcessNewPayment_PaymentServiceIsUnsuccessful_ReturnsCreatedAtRouteResult()
         {
             int merchantId = 2;
             _mockMerchantRepository.Setup(r => r.ReadMerchant(merchantId))
@@ -118,7 +118,7 @@ namespace PaymentGateway.API.Tests.ControllersTests
 
             var postResult = await _paymentsController.ProcessNewPayment(merchantId, new ProcessPaymentDto());
 
-            Assert.IsInstanceOfType(postResult, typeof(ConflictObjectResult));
+            Assert.IsInstanceOfType(postResult, typeof(CreatedAtRouteResult));
         }
 
         [TestMethod]

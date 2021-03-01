@@ -50,18 +50,15 @@ namespace PaymentGateway.API.Controllers
 
             PaymentRequest paymentRequest = _processPaymentMapper.Map((merchantId, processPaymentDto));
             PaymentResult paymentResult = await _processPaymentService.ProcessPayment(paymentRequest);
+            PaymentDetailsDto paymentDetails = _paymentDetailsMapper.Map(paymentRequest);
 
-            if (paymentResult.Successful)
-            {
-                return CreatedAtRoute("GetPaymentDetails",
-                    new
-                    {
-                        merchantId = merchantId,
-                        paymentId = paymentResult.PaymentId
-                    },
-                    paymentRequest);
-            }
-            return Conflict("Payment was unsuccessful.");
+            return CreatedAtRoute("GetPaymentDetails",
+                new
+                {
+                    merchantId = merchantId,
+                    paymentId = paymentResult.PaymentId
+                },
+                paymentDetails);
         }
     }
 }
