@@ -10,8 +10,8 @@ namespace PaymentGateway.Persistence
         private static readonly Dictionary<int, Merchant> _merchants = new Dictionary<int, Merchant>()
         {
             {1, new Merchant(){Id=1, Name = "Merchant A" } },
-            {2, new Merchant(){Id=1, Name = "Merchant B" } },
-            {3, new Merchant(){Id=1, Name = "Merchant C" } }
+            {2, new Merchant(){Id=2, Name = "Merchant B" } },
+            {3, new Merchant(){Id=3, Name = "Merchant C" } }
         };
 
         public Task<Merchant> ReadMerchant(int id)
