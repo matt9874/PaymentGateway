@@ -11,7 +11,7 @@ namespace PaymentGateway.Application
 
         public Task<BankPaymentResponse> ChargePayer(BankPaymentRequest bankPaymentRequest)
         {
-            int randomSingleDigitInteger = _random.Next(1,9);
+            int randomSingleDigitInteger = _random.Next(1,10);
 
             BankPaymentResponse response;
             if (randomSingleDigitInteger != 9)
