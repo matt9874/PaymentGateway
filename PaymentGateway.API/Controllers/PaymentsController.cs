@@ -9,7 +9,7 @@ namespace PaymentGateway.API.Controllers
 {
     [Route("api/merchants/{merchantId}/payments")]
     [ApiController]
-    public class PaymentsController:ControllerBase
+    public class PaymentsController : ControllerBase
     {
         private readonly IMapper<(int, ProcessPaymentDto), PaymentRequest> _processPaymentMapper;
         private readonly IMerchantsRepository _merchantRepository;
@@ -23,8 +23,14 @@ namespace PaymentGateway.API.Controllers
             _processPaymentService = processPaymentService;
         }
 
+        [HttpGet("{paymentId}", Name = "GetPaymentDetails")]
+        public async Task<IActionResult> GetPaymentDetails([FromRoute] int merchantId, [FromRoute] long paymentId)
+        {
+            return NotFound();
+        }
+
         [HttpPost]
-        public async Task<IActionResult> ProcessNewPayment([FromRoute] int merchantId, 
+        public async Task<IActionResult> ProcessNewPayment([FromRoute] int merchantId,
             [FromBody] ProcessPaymentDto processPaymentDto)
         {
             Merchant merchant = await _merchantRepository.ReadMerchant(merchantId);
@@ -41,7 +47,8 @@ namespace PaymentGateway.API.Controllers
                     {
                         merchantId = merchantId,
                         paymentId = paymentResult.PaymentId
-                    });
+                    },
+                    paymentRequest);
             }
             return Conflict("Payment was unsuccessful.");
         }

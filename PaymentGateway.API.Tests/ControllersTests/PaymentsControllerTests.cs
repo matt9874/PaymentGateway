@@ -45,7 +45,7 @@ namespace PaymentGateway.API.Tests.ControllersTests
             _mockMerchantRepository.Setup(r => r.ReadMerchant(1))
                 .ReturnsAsync(new Merchant() { Id = 1 });
             _mockProcessPaymentService.Setup(ps => ps.ProcessPayment(It.IsAny<PaymentRequest>()))
-                .ReturnsAsync(new PaymentResult(1, true));
+                .ReturnsAsync(new PaymentResult(1L, true));
 
             var postResult = await _paymentsController.ProcessNewPayment(1, new ProcessPaymentDto());
 
@@ -58,7 +58,7 @@ namespace PaymentGateway.API.Tests.ControllersTests
             _mockMerchantRepository.Setup(r => r.ReadMerchant(1))
                 .ReturnsAsync(new Merchant() { Id = 1 });
             _mockProcessPaymentService.Setup(ps => ps.ProcessPayment(It.IsAny<PaymentRequest>()))
-                .ReturnsAsync(new PaymentResult(1, true));
+                .ReturnsAsync(new PaymentResult(1L, true));
 
             var postResult = await _paymentsController.ProcessNewPayment(1, new ProcessPaymentDto());
 
@@ -69,21 +69,19 @@ namespace PaymentGateway.API.Tests.ControllersTests
         [TestMethod]
         [DataRow("merchantId")]
         [DataRow("paymentId")]
-        public async Task ProcessNewPayment_PaymentServiceIsSuccessful_RouteValueHasProperty(string propertyName)
+        public async Task ProcessNewPayment_PaymentServiceIsSuccessful_RouteValuesContainsKey(string propertyName)
         {
             int merchantId = 1;
 
             _mockMerchantRepository.Setup(r => r.ReadMerchant(merchantId))
                 .ReturnsAsync(new Merchant() { Id = merchantId });
             _mockProcessPaymentService.Setup(ps => ps.ProcessPayment(It.IsAny<PaymentRequest>()))
-                .ReturnsAsync(new PaymentResult(1, true));
+                .ReturnsAsync(new PaymentResult(1L, true));
 
             var postResult = await _paymentsController.ProcessNewPayment(merchantId, new ProcessPaymentDto());
             var createdAtRouteResult = (CreatedAtRouteResult)postResult;
 
-            bool hasProperty = createdAtRouteResult.Value.GetType().GetProperties()
-                .Any(a=>a.Name==propertyName);
-            Assert.IsTrue(hasProperty);
+            Assert.IsTrue(createdAtRouteResult.RouteValues.ContainsKey(propertyName));
         }
 
         [TestMethod]
@@ -102,11 +100,7 @@ namespace PaymentGateway.API.Tests.ControllersTests
             var postResult = await _paymentsController.ProcessNewPayment(merchantId, new ProcessPaymentDto());
             var createdAtRouteResult = (CreatedAtRouteResult)postResult;
 
-            object propertyValue = createdAtRouteResult.Value.GetType().GetProperties()
-                .FirstOrDefault(a => a.Name == propertyName)
-                .GetValue(createdAtRouteResult.Value);
-
-            Assert.AreEqual(expectedRouteValue, propertyValue);
+            Assert.AreEqual(expectedRouteValue, createdAtRouteResult.RouteValues[propertyName]);
         }
 
         [TestMethod]
@@ -116,12 +110,11 @@ namespace PaymentGateway.API.Tests.ControllersTests
             _mockMerchantRepository.Setup(r => r.ReadMerchant(merchantId))
                 .ReturnsAsync(new Merchant() { Id = merchantId });
             _mockProcessPaymentService.Setup(ps => ps.ProcessPayment(It.IsAny<PaymentRequest>()))
-                .ReturnsAsync(new PaymentResult(null, false));
+                .ReturnsAsync(new PaymentResult(1L, false));
 
             var postResult = await _paymentsController.ProcessNewPayment(merchantId, new ProcessPaymentDto());
 
             Assert.IsInstanceOfType(postResult, typeof(ConflictObjectResult));
         }
-
     }
 }

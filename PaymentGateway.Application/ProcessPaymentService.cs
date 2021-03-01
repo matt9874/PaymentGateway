@@ -29,6 +29,8 @@ namespace PaymentGateway.Application
             PaymentResult paymentResult = _paymentResponseMapper.Map(bankPaymentResponse);
 
             paymentRequest.Successful = paymentResult.Successful;
+            paymentRequest.Id = paymentResult.PaymentId;
+
             await _paymentsRepository.SavePayment(paymentRequest);
 
             return paymentResult;

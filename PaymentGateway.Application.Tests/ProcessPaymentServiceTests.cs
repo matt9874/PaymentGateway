@@ -32,28 +32,28 @@ namespace PaymentGateway.Application.Tests
         {
             var request = new PaymentRequest("1234512345123456", 1, 2222, "111", Currency.Euro, 1M, 1);
             _mockPaymentResponseMapper.Setup(m => m.Map(It.IsAny<BankPaymentResponse>()))
-                .Returns(new PaymentResult(1, true));
+                .Returns(new PaymentResult(1L, true));
 
             await _processPaymentService.ProcessPayment(request);
             Assert.IsTrue(request.Successful.Value);
         }
 
         [TestMethod]
-        public async Task ProcessPayment_ResponseSuccessful_RequestIsSaved()
+        public async Task ProcessPayment_ResponseSuccessful_RequestIsSavedOnce()
         {
             var request = new PaymentRequest("1234512345123456", 1, 2222, "111", Currency.Euro, 1M, 1);
             _mockPaymentResponseMapper.Setup(m => m.Map(It.IsAny<BankPaymentResponse>()))
-                .Returns(new PaymentResult(1, true));
+                .Returns(new PaymentResult(1L, true));
 
             await _processPaymentService.ProcessPayment(request);
-            _mockPaymentsRepository.Verify(r => r.SavePayment(request));
+            _mockPaymentsRepository.Verify(r => r.SavePayment(request), Times.Once);
         }
 
         [TestMethod]
         public async Task ProcessPayment_ResponseSuccessful_SuccessfulResponseReturned()
         {
             var request = new PaymentRequest("1234512345123456", 1, 2222, "111", Currency.Euro, 1M, 1);
-            var expectedResult = new PaymentResult(1, true);
+            var expectedResult = new PaymentResult(1L, true);
             _mockPaymentResponseMapper.Setup(m => m.Map(It.IsAny<BankPaymentResponse>()))
                 .Returns(expectedResult);
 
@@ -67,7 +67,7 @@ namespace PaymentGateway.Application.Tests
         {
             var request = new PaymentRequest("1234512345123456", 1, 2222, "111", Currency.Euro, 1M, 1);
             _mockPaymentResponseMapper.Setup(m => m.Map(It.IsAny<BankPaymentResponse>()))
-                .Returns(new PaymentResult(null, false));
+                .Returns(new PaymentResult(1L, false));
 
             await _processPaymentService.ProcessPayment(request);
             Assert.IsFalse(request.Successful.Value);
@@ -78,17 +78,17 @@ namespace PaymentGateway.Application.Tests
         {
             var request = new PaymentRequest("1234512345123456", 1, 2222, "111", Currency.Euro, 1M, 1);
             _mockPaymentResponseMapper.Setup(m => m.Map(It.IsAny<BankPaymentResponse>()))
-                .Returns(new PaymentResult(null, false));
+                .Returns(new PaymentResult(1L, false));
 
             await _processPaymentService.ProcessPayment(request);
-            _mockPaymentsRepository.Verify(r => r.SavePayment(request));
+            _mockPaymentsRepository.Verify(r => r.SavePayment(request), Times.Once);
         }
 
         [TestMethod]
         public async Task ProcessPayment_ResponseUnsuccessful_UnsuccessfulResponseReturned()
         {
             var request = new PaymentRequest("1234512345123456", 1, 2222, "111", Currency.Euro, 1M, 1);
-            var expectedResult = new PaymentResult(null, false);
+            var expectedResult = new PaymentResult(1L, false);
             _mockPaymentResponseMapper.Setup(m => m.Map(It.IsAny<BankPaymentResponse>()))
                 .Returns(expectedResult);
 

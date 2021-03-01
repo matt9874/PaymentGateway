@@ -2,12 +2,12 @@
 {
     public class BankPaymentResponse
     {
-        public BankPaymentResponse(long? id, bool successful)
+        public BankPaymentResponse(long id, bool successful)
         {
             PaymentId = id;
             Successful = successful;
         }
-        public long? PaymentId { get; }
+        public long PaymentId { get; }
         public bool Successful { get; }
     }
 }

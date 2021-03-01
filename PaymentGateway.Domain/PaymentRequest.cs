@@ -25,5 +25,6 @@ namespace PaymentGateway.Domain
         public decimal Amount { get; }
         public int MerchantId { get; }
         public bool? Successful { get; set; }
+        public long? Id { get; set; }
     }
 }

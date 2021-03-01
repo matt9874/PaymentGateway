@@ -11,7 +11,9 @@ using PaymentGateway.API.Mappers;
 using PaymentGateway.API.Models;
 using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
+using PaymentGateway.Application.PersistenceInterfaces;
 using PaymentGateway.Domain;
+using PaymentGateway.Persistence;
 
 namespace PaymentGateway.API
 {
@@ -69,7 +71,14 @@ namespace PaymentGateway.API
                     };
                 };
             });
+            services.AddScoped<IBankClient, DummyBankClient>();
+            services.AddScoped<IMapper<BankPaymentResponse, PaymentResult>, PaymentResponseMapper>();
+            services.AddScoped<IMapper<PaymentRequest, BankPaymentRequest>, PaymentRequestMapper>();
+            services.AddScoped<IMapper<(int, ProcessPaymentDto), PaymentRequest>, ProcessPaymentMapper>();
+            services.AddScoped<IProcessPaymentService, ProcessPaymentService>();
 
+            services.AddScoped<IMerchantsRepository, DummyMerchantsRepository>();
+            services.AddScoped<IPaymentsRepository, DummyPaymentsRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
