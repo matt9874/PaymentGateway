@@ -47,7 +47,6 @@ namespace PaymentGateway.API.Controllers
         public async Task<IActionResult> ProcessNewPayment([FromRoute] int merchantId,
             [FromBody] ProcessPaymentDto processPaymentDto)
         {
-            throw new System.Exception("XXX_XXX_XXX_XXX");
             Merchant merchant = await _merchantRepository.ReadMerchant(merchantId);
             if (merchant is null)
                 return NotFound();
