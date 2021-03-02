@@ -1,6 +1,6 @@
 ﻿namespace PaymentGateway.API.Models
 {
-    public class PaymentDetailsDto
+    public class PaymentDetailsDto: LinkResourceBaseDto
     {
         public string MaskedCardNumber { get; set; }
         public string Currency { get; set; }

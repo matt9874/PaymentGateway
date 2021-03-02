@@ -3,6 +3,7 @@ using PaymentGateway.API.Models;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.PersistenceInterfaces;
 using PaymentGateway.Domain;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PaymentGateway.API.Controllers
@@ -37,13 +38,16 @@ namespace PaymentGateway.API.Controllers
                 return NotFound();
 
             PaymentDetailsDto paymentDetailsDto = _paymentDetailsMapper.Map(paymentRequest);
+            paymentDetailsDto.Links.AddRange(CreateLinksForPayment(merchantId, paymentDetailsDto.Id));
+            
             return Ok(paymentDetailsDto);
         }
 
-        [HttpPost]
+        [HttpPost(Name = "ProcessNewPayment")]
         public async Task<IActionResult> ProcessNewPayment([FromRoute] int merchantId,
             [FromBody] ProcessPaymentDto processPaymentDto)
         {
+            throw new System.Exception("XXX_XXX_XXX_XXX");
             Merchant merchant = await _merchantRepository.ReadMerchant(merchantId);
             if (merchant is null)
                 return NotFound();
@@ -52,6 +56,8 @@ namespace PaymentGateway.API.Controllers
             PaymentResult paymentResult = await _processPaymentService.ProcessPayment(paymentRequest);
             PaymentDetailsDto paymentDetails = _paymentDetailsMapper.Map(paymentRequest);
 
+            paymentDetails.Links.AddRange(CreateLinksForPayment(merchantId, paymentDetails.Id));
+
             return CreatedAtRoute("GetPaymentDetails",
                 new
                 {
@@ -59,6 +65,16 @@ namespace PaymentGateway.API.Controllers
                     paymentId = paymentResult.PaymentId
                 },
                 paymentDetails);
+        }
+
+        private IEnumerable<LinkDto> CreateLinksForPayment(int merchantId, long paymentId)
+        {
+            return new LinkDto[]
+            {
+                new LinkDto(Url.Link("GetPaymentDetails", new {merchantId, paymentId }),
+                            "self",
+                            "GET")
+            };
         }
     }
 }
