@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +8,10 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using PaymentGateway.API.Extensions;
 using PaymentGateway.API.Mappers;
+using PaymentGateway.API.Middleware;
 using PaymentGateway.API.Models;
 using PaymentGateway.Application;
 using PaymentGateway.Application.Interfaces;
@@ -83,16 +87,27 @@ namespace PaymentGateway.API
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
         {
-            if (env.IsDevelopment())
+            app.UseExceptionHandler(appBuilder =>
             {
-                app.UseDeveloperExceptionPage();
-            }
+                appBuilder.Run(async context =>
+                {
+                    var exceptionHandlerPathFeature =
+                        context.Features.Get<IExceptionHandlerPathFeature>();
+                    string errorInformation = context.GetErrorInformation();
+                    logger.LogError(exceptionHandlerPathFeature?.Error, errorInformation);
 
+                    context.Response.StatusCode = 500;
+                    await context.Response.WriteAsync("An unexpected error happened");
+                });
+            });
+            
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseMiddleware<EnableBufferingMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {
