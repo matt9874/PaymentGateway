@@ -18,6 +18,7 @@ namespace PaymentGateway.API.Tests.ControllersTests
         private Mock<IProcessPaymentService> _mockProcessPaymentService;
         private Mock<IPaymentsRepository> _mockPaymentsRepository;
         private Mock<IMapper<PaymentRequest, PaymentDetailsDto>> _mockPaymentDetailsMapper;
+        private Mock<IUrlHelper> _mockUrlHelper;
         private PaymentsController _paymentsController;
 
         [TestInitialize]
@@ -30,6 +31,10 @@ namespace PaymentGateway.API.Tests.ControllersTests
             _mockPaymentDetailsMapper = new Mock<IMapper<PaymentRequest, PaymentDetailsDto>>();
             _paymentsController = new PaymentsController(_mockMapper.Object, _mockMerchantRepository.Object, 
                 _mockProcessPaymentService.Object, _mockPaymentsRepository.Object, _mockPaymentDetailsMapper.Object);
+
+            _mockUrlHelper = new Mock<IUrlHelper>();
+            _mockUrlHelper.Setup(uh => uh.Link(It.IsAny<string>(), It.IsAny<object>())).Returns("test.url");
+            _paymentsController.Url = _mockUrlHelper.Object;
         }
 
         [TestMethod]
@@ -38,20 +43,22 @@ namespace PaymentGateway.API.Tests.ControllersTests
             _mockMerchantRepository.Setup(r => r.ReadMerchant(1))
                 .ReturnsAsync((Merchant)null);
 
-            var postResult = await _paymentsController.ProcessNewPayment(1, new ProcessPaymentDto());
+            var postResult = (await _paymentsController.ProcessNewPayment(1, new ProcessPaymentDto())).Result;
 
             Assert.IsInstanceOfType(postResult, typeof(NotFoundResult));
         }
         
         [TestMethod]
-        public async Task ProcessNewPayment_PaymentServiceIsSuccessful_ReturnsCreatedAtRouteResult()
+        public async Task ProcessNewPayment_PaymentDetailsMapped_ReturnsCreatedAtRouteResult()
         {
             _mockMerchantRepository.Setup(r => r.ReadMerchant(1))
                 .ReturnsAsync(new Merchant() { Id = 1 });
             _mockProcessPaymentService.Setup(ps => ps.ProcessPayment(It.IsAny<PaymentRequest>()))
                 .ReturnsAsync(new PaymentResult(1L, true));
+            _mockPaymentDetailsMapper.Setup(m => m.Map(It.IsAny<PaymentRequest>()))
+                .Returns(new PaymentDetailsDto());
 
-            var postResult = await _paymentsController.ProcessNewPayment(1, new ProcessPaymentDto());
+            var postResult = (await _paymentsController.ProcessNewPayment(1, new ProcessPaymentDto())).Result;
 
             Assert.IsInstanceOfType(postResult, typeof(CreatedAtRouteResult));
         }
@@ -63,10 +70,12 @@ namespace PaymentGateway.API.Tests.ControllersTests
                 .ReturnsAsync(new Merchant() { Id = 1 });
             _mockProcessPaymentService.Setup(ps => ps.ProcessPayment(It.IsAny<PaymentRequest>()))
                 .ReturnsAsync(new PaymentResult(1L, true));
+            _mockPaymentDetailsMapper.Setup(m => m.Map(It.IsAny<PaymentRequest>()))
+                .Returns(new PaymentDetailsDto());
 
             var postResult = await _paymentsController.ProcessNewPayment(1, new ProcessPaymentDto());
 
-            var createdAtRouteResult = (CreatedAtRouteResult)postResult;
+            var createdAtRouteResult = (CreatedAtRouteResult)postResult.Result;
             Assert.AreEqual("GetPaymentDetails", createdAtRouteResult.RouteName);
         }
 
@@ -81,9 +90,11 @@ namespace PaymentGateway.API.Tests.ControllersTests
                 .ReturnsAsync(new Merchant() { Id = merchantId });
             _mockProcessPaymentService.Setup(ps => ps.ProcessPayment(It.IsAny<PaymentRequest>()))
                 .ReturnsAsync(new PaymentResult(1L, true));
+            _mockPaymentDetailsMapper.Setup(m => m.Map(It.IsAny<PaymentRequest>()))
+                .Returns(new PaymentDetailsDto());
 
             var postResult = await _paymentsController.ProcessNewPayment(merchantId, new ProcessPaymentDto());
-            var createdAtRouteResult = (CreatedAtRouteResult)postResult;
+            var createdAtRouteResult = (CreatedAtRouteResult)postResult.Result;
 
             Assert.IsTrue(createdAtRouteResult.RouteValues.ContainsKey(propertyName));
         }
@@ -100,9 +111,11 @@ namespace PaymentGateway.API.Tests.ControllersTests
                 .ReturnsAsync(new Merchant() { Id = merchantId });
             _mockProcessPaymentService.Setup(ps => ps.ProcessPayment(It.IsAny<PaymentRequest>()))
                 .ReturnsAsync(new PaymentResult(paymentId, true));
+            _mockPaymentDetailsMapper.Setup(m => m.Map(It.IsAny<PaymentRequest>()))
+                .Returns(new PaymentDetailsDto());
 
             var postResult = await _paymentsController.ProcessNewPayment(merchantId, new ProcessPaymentDto());
-            var createdAtRouteResult = (CreatedAtRouteResult)postResult;
+            var createdAtRouteResult = (CreatedAtRouteResult)postResult.Result;
 
             Assert.AreEqual(expectedRouteValue, createdAtRouteResult.RouteValues[propertyName]);
         }
@@ -115,10 +128,12 @@ namespace PaymentGateway.API.Tests.ControllersTests
                 .ReturnsAsync(new Merchant() { Id = merchantId });
             _mockProcessPaymentService.Setup(ps => ps.ProcessPayment(It.IsAny<PaymentRequest>()))
                 .ReturnsAsync(new PaymentResult(1L, false));
+            _mockPaymentDetailsMapper.Setup(m => m.Map(It.IsAny<PaymentRequest>()))
+                .Returns(new PaymentDetailsDto());
 
             var postResult = await _paymentsController.ProcessNewPayment(merchantId, new ProcessPaymentDto());
 
-            Assert.IsInstanceOfType(postResult, typeof(CreatedAtRouteResult));
+            Assert.IsInstanceOfType(postResult.Result, typeof(CreatedAtRouteResult));
         }
 
         [TestMethod]
@@ -127,7 +142,7 @@ namespace PaymentGateway.API.Tests.ControllersTests
             _mockPaymentsRepository.Setup(r => r.GetPaymentForMerchant(It.IsAny<int>(), It.IsAny<long>()))
                 .ReturnsAsync((PaymentRequest)null);
 
-            var postResult = await _paymentsController.GetPaymentDetails(1, 2L);
+            var postResult = (await _paymentsController.GetPaymentDetails(1, 2L)).Result;
 
             Assert.IsInstanceOfType(postResult, typeof(NotFoundResult));
         }
@@ -142,7 +157,7 @@ namespace PaymentGateway.API.Tests.ControllersTests
             _mockPaymentDetailsMapper.Setup(m => m.Map(It.IsAny<PaymentRequest>()))
                 .Returns(paymentDetails);
 
-            var postResult = await _paymentsController.GetPaymentDetails(1, 2L);
+            var postResult = (await _paymentsController.GetPaymentDetails(1, 2L)).Result;
 
             Assert.IsInstanceOfType(postResult, typeof(OkObjectResult));
         }
@@ -158,7 +173,7 @@ namespace PaymentGateway.API.Tests.ControllersTests
                 .Returns(paymentDetails);
 
             var postResult = await _paymentsController.GetPaymentDetails(1, 2L);
-            var okObjectResult = (OkObjectResult)postResult;
+            var okObjectResult = (OkObjectResult)postResult.Result;
 
             Assert.AreEqual(paymentDetails, okObjectResult.Value);
         }

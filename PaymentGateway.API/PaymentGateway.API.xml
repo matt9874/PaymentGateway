@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>PaymentGateway.API</name>
+    </assembly>
+    <members>
+        <member name="M:PaymentGateway.API.Controllers.PaymentsController.GetPaymentDetails(System.Int32,System.Int64)">
+            <summary>
+            Get details of a payment
+            </summary>
+            <param name="merchantId">id of the merchant</param>
+            <param name="paymentId">id of the payment</param>
+            <returns>An ActionResult of type PaymentDetailsDto</returns>
+        </member>
+        <member name="M:PaymentGateway.API.Controllers.PaymentsController.ProcessNewPayment(System.Int32,PaymentGateway.API.Models.ProcessPaymentDto)">
+            <summary>
+            Process a new payment
+            </summary>
+            <param name="merchantId">id of the merchant</param>
+            <param name="processPaymentDto">payment information</param>
+            <returns>An ActionResult of type PaymentDetailsDto</returns>
+            <response code="422">Validation error</response>
+        </member>
+        <member name="T:PaymentGateway.API.Models.ProcessPaymentDto">
+            <summary>
+            Payment information
+            </summary>
+        </member>
+        <member name="P:PaymentGateway.API.Models.ProcessPaymentDto.CardNumber">
+            <summary>
+            A valid credit card number
+            </summary>
+        </member>
+        <member name="P:PaymentGateway.API.Models.ProcessPaymentDto.ExpiryMonth">
+            <summary>
+            Month of expiry
+            </summary>
+        </member>
+        <member name="P:PaymentGateway.API.Models.ProcessPaymentDto.ExpiryYear">
+            <summary>
+            Year of expiry
+            </summary>
+        </member>
+        <member name="P:PaymentGateway.API.Models.ProcessPaymentDto.Cvv">
+            <summary>
+            A valid CVV
+            </summary>
+        </member>
+        <member name="P:PaymentGateway.API.Models.ProcessPaymentDto.Currency">
+            <summary>
+            A supported currency: Euro or PoundsSterling
+            </summary>
+        </member>
+        <member name="P:PaymentGateway.API.Models.ProcessPaymentDto.Amount">
+            <summary>
+            Amount of money being paid
+            </summary>
+        </member>
+    </members>
+</doc>

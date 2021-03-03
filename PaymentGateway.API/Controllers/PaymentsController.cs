@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.API.Models;
 using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.PersistenceInterfaces;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace PaymentGateway.API.Controllers
 {
+    [Produces("application/json")]
     [Route("api/merchants/{merchantId}/payments")]
     [ApiController]
     public class PaymentsController : ControllerBase
@@ -29,8 +31,16 @@ namespace PaymentGateway.API.Controllers
             _paymentDetailsMapper = paymentDetailsMapper;
         }
 
+        /// <summary>
+        /// Get details of a payment
+        /// </summary>
+        /// <param name="merchantId">id of the merchant</param>
+        /// <param name="paymentId">id of the payment</param>
+        /// <returns>An ActionResult of type PaymentDetailsDto</returns>
         [HttpGet("{paymentId}", Name = "GetPaymentDetails")]
-        public async Task<IActionResult> GetPaymentDetails([FromRoute] int merchantId, [FromRoute] long paymentId)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<PaymentDetailsDto>> GetPaymentDetails([FromRoute] int merchantId, [FromRoute] long paymentId)
         {
             PaymentRequest paymentRequest = await _paymentsRepository.GetPaymentForMerchant(merchantId, paymentId);
 
@@ -43,8 +53,19 @@ namespace PaymentGateway.API.Controllers
             return Ok(paymentDetailsDto);
         }
 
+        /// <summary>
+        /// Process a new payment
+        /// </summary>
+        /// <param name="merchantId">id of the merchant</param>
+        /// <param name="processPaymentDto">payment information</param>
+        /// <returns>An ActionResult of type PaymentDetailsDto</returns>
+        /// <response code="422">Validation error</response>
         [HttpPost(Name = "ProcessNewPayment")]
-        public async Task<IActionResult> ProcessNewPayment([FromRoute] int merchantId,
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        public async Task<ActionResult<PaymentDetailsDto>> ProcessNewPayment([FromRoute] int merchantId,
             [FromBody] ProcessPaymentDto processPaymentDto)
         {
             Merchant merchant = await _merchantRepository.ReadMerchant(merchantId);

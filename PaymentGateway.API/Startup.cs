@@ -18,6 +18,9 @@ using PaymentGateway.Application.Interfaces;
 using PaymentGateway.Application.PersistenceInterfaces;
 using PaymentGateway.Domain;
 using PaymentGateway.Persistence;
+using System;
+using System.IO;
+using System.Reflection;
 
 namespace PaymentGateway.API
 {
@@ -28,6 +31,8 @@ namespace PaymentGateway.API
             Configuration = configuration;
         }
 
+        private static readonly string _swaggerUrlSegment = "PaymentGatewayOpenApiSpecification";
+        private static readonly string _swaggerName = "PaymentGateway API";
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -35,6 +40,15 @@ namespace PaymentGateway.API
         {
             services.AddControllers(setupAction =>
             {
+                setupAction.Filters.Add(
+                    new ProducesResponseTypeAttribute(StatusCodes.Status400BadRequest));
+                setupAction.Filters.Add(
+                    new ProducesResponseTypeAttribute(StatusCodes.Status406NotAcceptable));
+                setupAction.Filters.Add(
+                    new ProducesResponseTypeAttribute(StatusCodes.Status500InternalServerError));
+                setupAction.Filters.Add(
+                    new ProducesDefaultResponseTypeAttribute());
+
                 setupAction.ReturnHttpNotAcceptable = true;
 
             }).ConfigureApiBehaviorOptions(setupAction =>
@@ -84,6 +98,20 @@ namespace PaymentGateway.API
 
             services.AddScoped<IMerchantsRepository, DummyMerchantsRepository>();
             services.AddScoped<IPaymentsRepository, DummyPaymentsRepository>();
+
+            services.AddSwaggerGen(setupAction =>
+            {
+                setupAction.SwaggerDoc(
+                    _swaggerUrlSegment,
+                    new Microsoft.OpenApi.Models.OpenApiInfo()
+                    { 
+                        Title = _swaggerName,
+                        Version = "1"
+                    });
+                string xmlCommentsFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                string xmlCommentsPath = Path.Combine(AppContext.BaseDirectory, xmlCommentsFile);
+                setupAction.IncludeXmlComments(xmlCommentsPath);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -102,7 +130,11 @@ namespace PaymentGateway.API
                     await context.Response.WriteAsync("An unexpected error happened");
                 });
             });
-            
+            app.UseSwagger();
+            app.UseSwaggerUI(setupAction =>
+            {
+                setupAction.SwaggerEndpoint($"/swagger/{_swaggerUrlSegment}/swagger.json", _swaggerName);
+            });
             app.UseRouting();
 
             app.UseAuthorization();
