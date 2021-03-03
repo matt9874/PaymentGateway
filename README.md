@@ -82,3 +82,8 @@ The simulation of the bank is performed by the DummyBankClient which randomly re
 * Assumed that a 422 should be returned when input validation fails.
 * Assumed that a 201 should be returned when the payment is unsuccessful. The body of the response can be inspected to see whether the payment was successful (or the Location header or links can be used to get the URI of the payment details).
 * When returning payment details, assumed that CVV and expiry month should not be returned.
+
+## Improvements
+* Merchant authentication should be added.
+* HTTPS should be used.
+* A database should be used instead of an in-memory cache.
