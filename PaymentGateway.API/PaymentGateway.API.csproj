@@ -21,5 +21,11 @@
     <ProjectReference Include="..\PaymentGateway.Persistence\PaymentGateway.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="PaymentGateway.API.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 
 </Project>
